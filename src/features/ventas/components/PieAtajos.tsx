@@ -5,7 +5,7 @@
   { tecla: "F4", label: "Suspender" },
   { tecla: "F5", label: "Devolución" },
   { tecla: "F6", label: "Descuento" },
-  { tecla: "F11", label: "Pantalla" },
+  { tecla: "F11", label: "Tarjeta" },
   { tecla: "F12", label: "Cobrar" },
 ];
 

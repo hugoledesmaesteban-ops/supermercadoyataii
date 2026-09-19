@@ -26,7 +26,7 @@
     },
     "bundle": {
       "active": true,
-      "targets": ["nsis"],
+      "targets": ["nsis", "updater"],
       "identifier": "com.superyatay.pos",
       "icon": ["icons/icon.ico"],
       "windows": {
@@ -42,7 +42,7 @@
     "updater": {
       "active": true,
       "dialog": true,
-      "pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IDgzQzEyMkI2QTA4RjYwQTQKUldTa1lJK2d0aUxCZ3pDenh6TkNMb1NteGRKS3ljU0JtZ05mY3hBNEl2V3M0Y1RGeXAvM0Q4TmwK",
+      "pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IEE1OEYyQkVGMTcxRjU4OEEKUldTS1dCOFg3eXVQcFZsYW5TQkRnbTJNYkQ1dWN2SmlFTjB3ZmpDQXhUcUVGQjl2dFJLS3pIK3cK",
       "endpoints": [
         "https://github.com/hugoledesmaesteban-ops/supermercadoyataii/releases/latest/download/latest.json"
       ]
