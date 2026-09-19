@@ -1,0 +1,63 @@
+{
+  "build": {
+    "beforeDevCommand": "npm run dev",
+    "beforeBuildCommand": "npm run build",
+    "devPath": "http://localhost:5173",
+    "distDir": "../dist",
+    "withGlobalTauri": false
+  },
+  "package": {
+    "productName": "SuperYatayPOS",
+    "version": "0.1.0"
+  },
+  "tauri": {
+    "allowlist": {
+      "all": false,
+      "shell": { "open": true },
+      "window": { "all": true },
+      "dialog": { "all": true },
+      "fs": {
+        "all": false,
+        "readFile": true,
+        "writeFile": true,
+        "createDir": true,
+        "scope": ["$APPDATA/*", "$APPDATA/backups/*", "$APPDATA/logs/*"]
+      }
+    },
+    "bundle": {
+      "active": true,
+      "targets": ["nsis"],
+      "identifier": "com.superyatay.pos",
+      "icon": ["icons/icon.ico"],
+      "windows": {
+        "nsis": {
+          "installMode": "currentUser",
+          "languages": ["Spanish"]
+        }
+      }
+    },
+    "security": {
+      "csp": "default-src 'self'; connect-src 'self' https://*.supabase.co"
+    },
+    "updater": {
+      "active": true,
+      "dialog": true,
+      "pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IDgzQzEyMkI2QTA4RjYwQTQKUldTa1lJK2d0aUxCZ3pDenh6TkNMb1NteGRKS3ljU0JtZ05mY3hBNEl2V3M0Y1RGeXAvM0Q4TmwK",
+      "endpoints": [
+        "https://github.com/hugoledesmaesteban-ops/supermercadoyataii/releases/latest/download/latest.json"
+      ]
+    },
+    "windows": [
+      {
+        "maximized": true,
+        "title": "SUPER YATAY - POS",
+        "width": 1280,
+        "height": 800,
+        "minWidth": 1024,
+        "minHeight": 700,
+        "resizable": true,
+        "fullscreen": true
+      }
+    ]
+  }
+}

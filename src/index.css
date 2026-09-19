@@ -1,0 +1,8 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Botones mínimos de 60px en la pantalla de venta (sección 11 y 54) */
+.btn-pos {
+  @apply h-[60px] rounded-lg text-lg font-semibold transition-colors;
+}

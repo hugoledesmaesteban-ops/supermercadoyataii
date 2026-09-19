@@ -1,0 +1,59 @@
+[package]
+name = "mini-mercado-goya"
+version = "0.1.0"
+description = "Sistema POS offline-first para Mini Mercado Goya"
+edition = "2021"
+
+[build-dependencies]
+tauri-build = { version = "1.5", features = [] }
+
+[dependencies]
+tauri = { version = "1.7", features = [ "window-all", "fs-read-file", "fs-create-dir", "fs-write-file", "dialog-all", "shell-open", "updater"] }
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+
+# Persistencia local: SQLite embebido, sin servidor.
+rusqlite = { version = "0.31", features = ["bundled"] }
+r2d2 = "0.8"
+r2d2_sqlite = "0.24"
+
+# Hash seguro de contraseñas (sección 36: nunca texto plano)
+argon2 = "0.5"
+
+# Identificadores únicos para ventas (sync_uuid) y cliente_id de licencia
+uuid = { version = "1", features = ["v4"] }
+
+# Comunicación serial con la balanza Kretz (puerto COM / baud rate configurables)
+serialport = "4.3"
+
+# Cliente HTTP para verificación de licencia contra Supabase
+reqwest = { version = "0.12", features = ["json", "blocking"] }
+
+# Hash de integridad del registro de licencia local (detección de manipulación, sección 43)
+sha2 = "0.10"
+
+# Excel: importación/exportación de productos (Fase 3/22, sección 24)
+calamine = "0.25"
+rust_xlsxwriter = "0.77"
+
+chrono = { version = "0.4", features = ["serde"] }
+thiserror = "1.0"
+log = "0.4"
+env_logger = "0.11"
+
+# Cifrado local del access token de Mercado Pago (nunca en texto plano)
+aes-gcm = "0.10"
+base64 = "0.22"
+rand = "0.8"
+
+[target.'cfg(windows)'.dependencies]
+winapi = { version = "0.3", features = ["winspool", "winbase", "handleapi", "winerror"] }
+
+[features]
+custom-protocol = ["tauri/custom-protocol"]
+
+[profile.release]
+panic = "abort"
+codegen-units = 1
+lto = true
+opt-level = "s"
