@@ -18,6 +18,7 @@ const TODOS_LOS_ITEMS: ItemNav[] = [
   { ruta: "/rentabilidad", etiqueta: "Rentabilidad", icono: "📈" },
   { ruta: "/caja", etiqueta: "Caja", icono: "💰" },
   { ruta: "/auditoria", etiqueta: "Auditoría", icono: "📋" },
+  { ruta: "/historial-ventas", etiqueta: "Historial Ventas", icono: "🧾" },
   { ruta: "/configuracion", etiqueta: "Configuración", icono: "⚙️" },
   { ruta: "/cierre-caja", etiqueta: "Cerrar caja", icono: "🔒" },
 ];

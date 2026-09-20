@@ -15,6 +15,7 @@ export const RUTAS_POR_ROL: Record<Rol, string[]> = {
     "/dashboard",
     "/rentabilidad",
     "/auditoria",
+    "/historial-ventas",
     "/configuracion",
     "/cierre-caja",
   ],

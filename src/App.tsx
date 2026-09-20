@@ -17,6 +17,7 @@ import PantallaConfiguracion from "@/features/configuracion/PantallaConfiguracio
 import PantallaLicencia from "@/features/licencia/PantallaLicencia";
 import PantallaPrimerInicio from "@/features/setup/PantallaPrimerInicio";
 import PantallaAuditoria from "@/features/auditoria/PantallaAuditoria";
+import PantallaHistorialVentas from "@/features/ventas/PantallaHistorialVentas";
 import { estadoLicenciaSimple, type EstadoLicenciaSimple } from "@/services/licenciaSimpleService";
 import { useSesionStore } from "@/store/sesionStore";
 
@@ -97,6 +98,7 @@ export default function App() {
             <Route path="/rentabilidad" element={<RutaProtegidaPorRol ruta="/rentabilidad"><PantallaRentabilidad /></RutaProtegidaPorRol>} />
             <Route path="/caja" element={<RutaProtegidaPorRol ruta="/caja"><PantallaCaja /></RutaProtegidaPorRol>} />
             <Route path="/auditoria" element={<RutaProtegidaPorRol ruta="/auditoria"><PantallaAuditoria /></RutaProtegidaPorRol>} />
+            <Route path="/historial-ventas" element={<RutaProtegidaPorRol ruta="/historial-ventas"><PantallaHistorialVentas /></RutaProtegidaPorRol>} />
             <Route path="/configuracion" element={<RutaProtegidaPorRol ruta="/configuracion"><PantallaConfiguracion /></RutaProtegidaPorRol>} />
             <Route path="/licencia" element={<RutaProtegidaPorRol ruta="/licencia"><PantallaLicencia /></RutaProtegidaPorRol>} />
             <Route path="/cierre-caja" element={<RutaProtegidaPorRol ruta="/cierre-caja"><PantallaCierreCaja /></RutaProtegidaPorRol>} />

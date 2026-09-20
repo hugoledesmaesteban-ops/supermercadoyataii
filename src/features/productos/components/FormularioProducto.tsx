@@ -1,6 +1,7 @@
 ﻿import { useEffect, useRef, useState, type FormEvent } from "react";
 import { crearProducto } from "@/services/productosService";
 import type { Producto } from "@/types/producto";
+import CalculadoraPrecio from "./CalculadoraPrecio";
 
 interface Props {
   usuarioId: number;
@@ -37,8 +38,6 @@ export default function FormularioProducto({ usuarioId, onCreado }: Props) {
   const [error, setError] = useState<string | null>(null);
   const codigoRef = useRef<HTMLInputElement>(null);
 
-  // Foco automático en el campo de código de barras para que el lector
-  // escriba ahí directamente sin tener que hacer click.
   useEffect(() => {
     codigoRef.current?.focus();
   }, []);
@@ -54,7 +53,6 @@ export default function FormularioProducto({ usuarioId, onCreado }: Props) {
     try {
       await crearProducto({ ...form, id: null }, usuarioId);
       setForm(PRODUCTO_VACIO);
-      // Después de crear, vuelve el foco al campo de código
       setTimeout(() => codigoRef.current?.focus(), 100);
       onCreado();
     } catch (e) {
@@ -84,7 +82,6 @@ export default function FormularioProducto({ usuarioId, onCreado }: Props) {
             value={form.codigo_barra ?? ""}
             onChange={(e) => setForm({ ...form, codigo_barra: e.target.value || null })}
             onKeyDown={(e) => {
-              // Si el lector envía Enter después del código, pasamos el foco al nombre
               if (e.key === "Enter" && form.codigo_barra) {
                 e.preventDefault();
                 const siguiente = (e.currentTarget.form as HTMLFormElement)?.elements.namedItem(
@@ -108,9 +105,9 @@ export default function FormularioProducto({ usuarioId, onCreado }: Props) {
           />
         </Campo>
 
-        <Campo label="Precio de compra ($)" hint="Lo que pagás al proveedor">
+        <Campo label="Precio de compra ($)" hint="Lo que pagas al proveedor">
           <input
-            type="number"
+            type="number" onFocus={(e) => e.currentTarget.select()}
             step="0.01"
             value={form.precio_compra}
             onChange={(e) => setForm({ ...form, precio_compra: parseFloat(e.target.value) || 0 })}
@@ -118,9 +115,9 @@ export default function FormularioProducto({ usuarioId, onCreado }: Props) {
           />
         </Campo>
 
-        <Campo label="Precio de venta ($)" hint="Lo que cobrás al cliente">
+        <Campo label="Precio de venta ($)" hint="Lo que cobras al cliente">
           <input
-            type="number"
+            type="number" onFocus={(e) => e.currentTarget.select()}
             step="0.01"
             value={form.precio_venta}
             onChange={(e) => setForm({ ...form, precio_venta: parseFloat(e.target.value) || 0 })}
@@ -128,9 +125,9 @@ export default function FormularioProducto({ usuarioId, onCreado }: Props) {
           />
         </Campo>
 
-        <Campo label="Stock inicial" hint="Cantidad que tenés ahora">
+        <Campo label="Stock inicial" hint="Cantidad que tenes ahora">
           <input
-            type="number"
+            type="number" onFocus={(e) => e.currentTarget.select()}
             step="0.01"
             value={form.stock}
             onChange={(e) => setForm({ ...form, stock: parseFloat(e.target.value) || 0 })}
@@ -140,7 +137,7 @@ export default function FormularioProducto({ usuarioId, onCreado }: Props) {
 
         <Campo label="Stock mínimo" hint="Alerta cuando baja de acá">
           <input
-            type="number"
+            type="number" onFocus={(e) => e.currentTarget.select()}
             step="0.01"
             value={form.stock_minimo}
             onChange={(e) => setForm({ ...form, stock_minimo: parseFloat(e.target.value) || 0 })}
@@ -172,6 +169,14 @@ export default function FormularioProducto({ usuarioId, onCreado }: Props) {
         </Campo>
       </div>
 
+      {form.precio_compra > 0 && (
+        <CalculadoraPrecio
+          costo={form.precio_compra}
+          precioActual={form.precio_venta}
+          onAplicar={(nuevoPrecio) => setForm({ ...form, precio_venta: nuevoPrecio })}
+        />
+      )}
+
       <label className="flex items-center gap-2 text-sm bg-slate-50 px-3 py-2 rounded-lg w-fit">
         <input
           type="checkbox"
@@ -190,7 +195,7 @@ export default function FormularioProducto({ usuarioId, onCreado }: Props) {
       {form.es_pesable && (
         <Campo label="Precio por kg ($)">
           <input
-            type="number"
+            type="number" onFocus={(e) => e.currentTarget.select()}
             step="0.01"
             value={form.precio_por_kg ?? ""}
             onChange={(e) => setForm({ ...form, precio_por_kg: parseFloat(e.target.value) || null })}
@@ -232,3 +237,4 @@ function Campo({
     </div>
   );
 }
+

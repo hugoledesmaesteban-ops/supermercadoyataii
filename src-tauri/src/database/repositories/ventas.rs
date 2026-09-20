@@ -12,6 +12,7 @@
 //! (secciÃ³n 18), no se pierde el dato.
 
 use crate::database::repositories::stock::{ajustar_stock, TipoMovimiento};
+use argon2::{Argon2, PasswordHash, PasswordVerifier};
 use crate::database::DbError;
 use rusqlite::{params, Connection, OptionalExtension};
 use serde::{Deserialize, Serialize};
@@ -269,6 +270,193 @@ pub fn buscar_venta_para_devolucion(
     }))
 }
 
+
+// ============================================================
+// Anular venta (solo dueño/developer con contraseña)
+// ============================================================
+
+#[derive(Debug, Serialize)]
+pub struct VentaParaAnular {
+    pub id: i64,
+    pub numero: String,
+    pub fecha: String,
+    pub total: f64,
+    pub estado: String,
+    pub cantidad_items: i64,
+}
+
+pub fn listar_ventas_para_anular(
+    conn: &Connection,
+    desde: Option<&str>,
+    hasta: Option<&str>,
+    limite: i64,
+) -> Result<Vec<VentaParaAnular>, DbError> {
+    let mut sql = String::from(
+        "SELECT v.id, v.numero, v.fecha, v.total, COALESCE(v.estado, 'CONFIRMADA'),
+                (SELECT COUNT(*) FROM detalle_venta dv WHERE dv.venta_id = v.id)
+         FROM ventas v WHERE 1=1"
+    );
+    if desde.is_some() {
+        sql.push_str(" AND date(v.fecha) >= date(?1)");
+    }
+    if hasta.is_some() {
+        sql.push_str(" AND date(v.fecha) <= date(?2)");
+    }
+    sql.push_str(" ORDER BY v.id DESC LIMIT ?3");
+
+    let mut stmt = conn.prepare(&sql)?;
+
+    let filas: Vec<VentaParaAnular> = if desde.is_some() && hasta.is_some() {
+        stmt.query_map(params![desde.unwrap(), hasta.unwrap(), limite], map_venta)?
+            .filter_map(|r| r.ok()).collect()
+    } else if desde.is_some() {
+        stmt.query_map(params![desde.unwrap(), "9999-12-31", limite], map_venta)?
+            .filter_map(|r| r.ok()).collect()
+    } else if hasta.is_some() {
+        stmt.query_map(params!["1900-01-01", hasta.unwrap(), limite], map_venta)?
+            .filter_map(|r| r.ok()).collect()
+    } else {
+        stmt.query_map(params!["1900-01-01", "9999-12-31", limite], map_venta)?
+            .filter_map(|r| r.ok()).collect()
+    };
+
+    Ok(filas)
+}
+
+fn map_venta(r: &rusqlite::Row) -> rusqlite::Result<VentaParaAnular> {
+    Ok(VentaParaAnular {
+        id: r.get(0)?,
+        numero: r.get(1)?,
+        fecha: r.get(2)?,
+        total: r.get(3)?,
+        estado: r.get(4)?,
+        cantidad_items: r.get(5)?,
+    })
+}
+
+fn verificar_password(
+    conn: &Connection,
+    usuario_id: i64,
+    password: &str,
+) -> Result<bool, DbError> {
+    let hash: String = conn
+        .query_row(
+            "SELECT password_hash FROM usuarios WHERE id = ?1",
+            params![usuario_id],
+            |r| r.get(0),
+        )
+        .map_err(|_| error_negocio("Usuario no encontrado."))?;
+
+    let parsed = PasswordHash::new(&hash)
+        .map_err(|_| error_negocio("Error al leer la contraseña guardada."))?;
+
+    Ok(Argon2::default()
+        .verify_password(password.as_bytes(), &parsed)
+        .is_ok())
+}
+
+fn es_dueno(conn: &Connection, usuario_id: i64) -> Result<bool, DbError> {
+    let rol_id: i64 = conn
+        .query_row(
+            "SELECT rol_id FROM usuarios WHERE id = ?1",
+            params![usuario_id],
+            |r| r.get(0),
+        )
+        .map_err(|_| error_negocio("Usuario no encontrado."))?;
+    Ok(rol_id == 1 || rol_id == 2)
+}
+
+pub fn anular_venta(
+    conn: &mut Connection,
+    venta_id: i64,
+    usuario_id: i64,
+    password: &str,
+) -> Result<(), DbError> {
+    // 1. Verificar rol
+    if !es_dueno(conn, usuario_id)? {
+        return Err(error_negocio(
+            "Solo el dueño puede anular ventas.",
+        ));
+    }
+
+    // 2. Verificar contraseña
+    if !verificar_password(conn, usuario_id, password)? {
+        return Err(error_negocio("Contraseña incorrecta."));
+    }
+
+    // 3. Verificar que existe y no esté anulada
+    let (estado, caja_id, total): (String, i64, f64) = conn
+        .query_row(
+            "SELECT COALESCE(estado, 'CONFIRMADA'), caja_id, total
+             FROM ventas WHERE id = ?1",
+            params![venta_id],
+            |r| Ok((r.get(0)?, r.get(1)?, r.get(2)?)),
+        )
+        .map_err(|_| error_negocio("Venta no encontrada."))?;
+
+    if estado == "ANULADA" {
+        return Err(error_negocio("Esta venta ya fue anulada."));
+    }
+
+    // 4. Obtener items para devolver stock
+    let items: Vec<(i64, f64)> = {
+        let mut stmt = conn.prepare(
+            "SELECT producto_id, cantidad FROM detalle_venta WHERE venta_id = ?1",
+        )?;
+        let rows = stmt
+            .query_map(params![venta_id], |r| Ok((r.get(0)?, r.get(1)?)))?
+            .filter_map(|r| r.ok())
+            .collect();
+        rows
+    };
+
+    // 5. Transacción
+    let tx = conn.transaction()?;
+
+    // 5.1 Devolver stock
+    for (producto_id, cantidad) in &items {
+        ajustar_stock(
+            &tx,
+            *producto_id,
+            *cantidad,
+            TipoMovimiento::Ajuste,
+            Some("Anulación de venta"),
+            Some("anulacion"),
+            Some(venta_id),
+            usuario_id,
+        )?;
+    }
+
+    // 5.2 Borrar movimientos de caja de esa venta
+    tx.execute(
+        "DELETE FROM movimientos_caja
+         WHERE referencia_tipo = 'venta' AND referencia_id = ?1 AND tipo = 'VENTA'",
+        params![venta_id],
+    )?;
+
+    // 5.3 Marcar venta como anulada
+    tx.execute(
+        "UPDATE ventas SET estado = 'ANULADA' WHERE id = ?1",
+        params![venta_id],
+    )?;
+
+    // 5.4 Registrar en auditoría (si la tabla existe)
+    let _ = tx.execute(
+        "INSERT INTO auditoria (usuario_id, accion, entidad, entidad_id, detalle)
+         VALUES (?1, 'VENTA_ANULADA', 'venta', ?2, ?3)",
+        params![
+            usuario_id,
+            venta_id,
+            format!("Venta anulada. Total original: ${:.2}", total)
+        ],
+    );
+
+    tx.commit()?;
+
+    let _ = caja_id; // reservado por si a futuro se necesita
+
+    Ok(())
+}
 #[cfg(test)]
 mod tests {
     use super::*;

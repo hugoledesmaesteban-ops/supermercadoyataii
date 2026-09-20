@@ -8,6 +8,8 @@ import {
 } from "@/services/productosService";
 import { useSesionStore } from "@/store/sesionStore";
 import type { Producto } from "@/types/producto";
+import { listarStockBajo } from "@/services/productosService";
+import { imprimirListaReposicion } from "@/services/impresionService";
 import FormularioProducto from "./components/FormularioProducto";
 import ModalEditarProducto from "./components/ModalEditarProducto";
 import ModalAjustarStock from "./components/ModalAjustarStock";
@@ -38,6 +40,7 @@ export default function PantallaProductos() {
   const [editar, setEditar] = useState<Producto | null>(null);
   const [ajustar, setAjustar] = useState<Producto | null>(null);
   const [editarPrecio, setEditarPrecio] = useState<Producto | null>(null);
+  const [imprimiendo, setImprimiendo] = useState(false);
 
   async function cargar() {
     setCargando(true);
@@ -107,6 +110,18 @@ export default function PantallaProductos() {
       cargar();
     } catch (e) {
       alert(String(e));
+    }
+  }
+
+  async function manejarImprimirReposicion() {
+    setImprimiendo(true);
+    try {
+      const items = await listarStockBajo();
+      await imprimirListaReposicion(items);
+    } catch (e) {
+      alert(String(e));
+    } finally {
+      setImprimiendo(false);
     }
   }
 
@@ -183,6 +198,15 @@ export default function PantallaProductos() {
             />
             ⏰ Por vencer (30 días)
           </label>
+
+          <button
+            type="button"
+            onClick={manejarImprimirReposicion}
+            disabled={imprimiendo}
+            className="flex items-center gap-2 text-sm bg-blue-50 px-3 py-2 rounded-lg font-semibold text-blue-800 hover:bg-blue-100 disabled:opacity-50"
+          >
+            {imprimiendo ? "Imprimiendo..." : "🖨️ Imprimir reposicion"}
+          </button>
 
           {totalFiltros > 0 && (
             <button

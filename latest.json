@@ -1,11 +1,11 @@
-﻿{
-  "version": "0.1.0",
-  "notes": "Primera version del POS Super Yatay - USB, balanza y Mercado Pago",
-  "pub_date": "2026-09-19T12:00:00Z",
+{
+  "version": "0.1.2",
+  "notes": "Nuevo: Calculadora de precio, lista de reposicion, presupuesto, historial de ventas con anulacion.",
+  "pub_date": "2026-09-20T18:00:00Z",
   "platforms": {
     "windows-x86_64": {
-      "signature": "dW50cnVzdGVkIGNvbW1lbnQ6IHNpZ25hdHVyZSBmcm9tIHRhdXJpIHNlY3JldCBrZXkKUlVTS1dCOFg3eXVQcGNtY1ozOUV0QkJ3RU5UZzhWRGNJSUZKVlprWnE3NGMrQmM1Z0Iwa0lXUXZ5UnNsZ0dJN0lEU1FEWm9JZWZuRHNDRCttdlhOZFZEQnZiaDdBR2NFUUEwPQp0cnVzdGVkIGNvbW1lbnQ6IHRpbWVzdGFtcDoxNzg5ODE0ODg5CWZpbGU6U3VwZXJZYXRheVBPU18wLjEuMF94NjQtc2V0dXAubnNpcy56aXAKTDFtYjQ3YUQ4a3dJVThTdXA4OTJqcjM5alArSFFQTUlyaEFOMTF4Mk82MXhKOG1MeHVkd3hyMk5heUpkT0N2OVQ1aStHNURVSFN6eG5xSi9IdWc3QXc9PQo=",
-      "url": "https://github.com/hugoledesmaesteban-ops/supermercadoyataii/releases/download/v0.1.0/SuperYatayPOS_0.1.0_x64-setup.nsis.zip"
+      "signature": "dW50cnVzdGVkIGNvbW1lbnQ6IHNpZ25hdHVyZSBmcm9tIHRhdXJpIHNlY3JldCBrZXkKUlVTS1dCOFg3eXVQcGVLb09nQUtyMDZhcjhHUjlaSFNPdGhqRFFjZmNFaWhwZWtpMEVBR05zTlN0cFhvRnR5bjQ2bGg5VWJDK0M4bXliS0tnaVY1MUFPQTNsVnFnbnVrVkFvPQp0cnVzdGVkIGNvbW1lbnQ6IHRpbWVzdGFtcDoxNzg5OTI1NTM4CWZpbGU6U3VwZXJZYXRheVBPU18wLjEuMl94NjQtc2V0dXAubnNpcy56aXAKYW9KUk5ybVRrTE1BTFAwQkQzeDg5dDBEREdtdHlXQ0JMNThHODB2OHVNa2NuNzdaNFAvUHluK01WVitod2VkWFF6VW1NdmtlQjVRRndva1h0cmZlRGc9PQo=",
+      "url": "https://github.com/hugoledesmaesteban-ops/supermercadoyataii/releases/download/v0.1.2/SuperYatayPOS_0.1.2_x64-setup.nsis.zip"
     }
   }
 }

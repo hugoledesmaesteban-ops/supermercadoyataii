@@ -183,3 +183,84 @@ export function formatearFechaHora(d: Date): { fecha: string; hora: string } {
   const mm = String(d.getMinutes()).padStart(2, "0");
   return { fecha: `${dia}/${mes}/${anio}`, hora: `${hh}:${mm}` };
 }
+
+// ---------- Lista de reposicion ----------
+
+export interface ItemReposicion {
+  nombre: string;
+  stock: number;
+  stock_minimo: number;
+  unidad_medida: string;
+}
+
+export async function imprimirListaReposicion(items: ItemReposicion[]): Promise<void> {
+  const modo = await leerModoImpresora();
+
+  if (modo === "usb") {
+    const nombre = await leerNombreImpresoraUsb();
+    if (!nombre) {
+      throw new Error("No hay impresora USB configurada. Andá a Configuracion → Impresora.");
+    }
+    return invoke<void>("imprimir_lista_reposicion_usb", {
+      nombreImpresora: nombre,
+      items,
+    });
+  }
+
+  const cfg = await leerConfigImpresora();
+  if (!cfg) {
+    throw new Error("No hay impresora de red configurada. Andá a Configuracion → Impresora.");
+  }
+  return invoke<void>("imprimir_lista_reposicion_ethernet", {
+    ip: cfg.ip,
+    puerto: cfg.puerto,
+    items,
+  });
+}
+
+// ---------- Presupuesto ----------
+
+export interface ItemPresupuesto {
+  nombre: string;
+  cantidad_display: string;
+  precio_unitario: number;
+  total: number;
+}
+
+export interface DatosPresupuesto {
+  nombre_comercio: string;
+  direccion: string;
+  localidad_provincia: string;
+  telefono: string;
+  cuit: string;
+  fecha: string;
+  hora: string;
+  valido_hasta: string;
+  items: ItemPresupuesto[];
+  total: number;
+}
+
+export async function imprimirPresupuesto(p: DatosPresupuesto): Promise<void> {
+  const modo = await leerModoImpresora();
+
+  if (modo === "usb") {
+    const nombre = await leerNombreImpresoraUsb();
+    if (!nombre) {
+      throw new Error("No hay impresora USB configurada. Anda a Configuracion - Impresora.");
+    }
+    return invoke<void>("imprimir_presupuesto_usb", {
+      nombreImpresora: nombre,
+      presupuesto: p,
+    });
+  }
+
+  const cfg = await leerConfigImpresora();
+  if (!cfg) {
+    throw new Error("No hay impresora de red configurada. Anda a Configuracion - Impresora.");
+  }
+  return invoke<void>("imprimir_presupuesto_ethernet", {
+    ip: cfg.ip,
+    puerto: cfg.puerto,
+    presupuesto: p,
+  });
+}

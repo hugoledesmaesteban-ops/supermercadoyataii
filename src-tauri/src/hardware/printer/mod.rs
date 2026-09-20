@@ -72,6 +72,28 @@ pub struct DatosTicket {
     pub mensaje_final: String,
 }
 
+#[derive(Debug, Serialize, Deserialize)]
+pub struct ItemReposicion {
+    pub nombre: String,
+    pub stock: f64,
+    pub stock_minimo: f64,
+    pub unidad_medida: String,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct DatosPresupuesto {
+    pub nombre_comercio: String,
+    pub direccion: String,
+    pub localidad_provincia: String,
+    pub telefono: String,
+    pub cuit: String,
+    pub fecha: String,
+    pub hora: String,
+    pub valido_hasta: String,
+    pub items: Vec<ItemTicket>,
+    pub total: f64,
+}
+
 pub struct Itpos8012 {
     conexion: ConexionImpresora,
 }
@@ -153,6 +175,16 @@ impl Itpos8012 {
 
     pub fn imprimir_ticket(&self, t: &DatosTicket) -> Result<(), PrinterError> {
         let buf = construir_bytes_ticket(t);
+        self.enviar_bytes(&buf)
+    }
+
+    pub fn imprimir_lista_reposicion(&self, items: &[ItemReposicion]) -> Result<(), PrinterError> {
+        let buf = construir_bytes_lista_reposicion(items);
+        self.enviar_bytes(&buf)
+    }
+
+    pub fn imprimir_presupuesto(&self, p: &DatosPresupuesto) -> Result<(), PrinterError> {
+        let buf = construir_bytes_presupuesto(p);
         self.enviar_bytes(&buf)
     }
 }
@@ -239,6 +271,103 @@ fn construir_bytes_ticket(t: &DatosTicket) -> Vec<u8> {
     buf.extend_from_slice(escpos::CORTAR_PAPEL);
 
     buf
+}
+
+fn construir_bytes_lista_reposicion(items: &[ItemReposicion]) -> Vec<u8> {
+    let mut buf = Vec::new();
+    buf.extend_from_slice(escpos::INICIALIZAR);
+    buf.extend_from_slice(escpos::ALINEAR_CENTRO);
+    buf.extend_from_slice(escpos::NEGRITA_ON);
+    buf.extend_from_slice(b"SUPER YATAY - REPOSICION\n");
+    buf.extend_from_slice(escpos::NEGRITA_OFF);
+
+    let ahora = chrono::Local::now();
+    buf.extend_from_slice(format!("{}\n", ahora.format("%d/%m/%y  %H:%M")).as_bytes());
+    buf.extend_from_slice(escpos::SALTO_LINEA);
+
+    buf.extend_from_slice(escpos::ALINEAR_IZQUIERDA);
+
+    if items.is_empty() {
+        buf.extend_from_slice(b"--------------------------------\n");
+        buf.extend_from_slice(b"   Todo en stock :)\n");
+    } else {
+        buf.extend_from_slice(b"PRODUCTO             STOCK/MIN\n");
+        buf.extend_from_slice(b"--------------------------------\n");
+        for item in items {
+            let nombre_corto = truncar(&item.nombre, 18);
+            let valor = format!("{:.0}/{:.0}", item.stock, item.stock_minimo);
+            buf.extend_from_slice(linea_dos_columnas(&nombre_corto, &valor).as_bytes());
+            buf.extend_from_slice(escpos::SALTO_LINEA);
+        }
+        buf.extend_from_slice(b"--------------------------------\n");
+        buf.extend_from_slice(
+            linea_dos_columnas("Total a reponer:", &format!("{}", items.len())).as_bytes()
+        );
+        buf.extend_from_slice(escpos::SALTO_LINEA);
+    }
+
+    buf.extend_from_slice(escpos::SALTO_LINEA);
+    buf.extend_from_slice(escpos::SALTO_LINEA);
+    buf.extend_from_slice(escpos::CORTAR_PAPEL);
+    buf
+}
+
+fn construir_bytes_presupuesto(p: &DatosPresupuesto) -> Vec<u8> {
+    let mut buf = Vec::new();
+    buf.extend_from_slice(escpos::INICIALIZAR);
+    buf.extend_from_slice(escpos::ALINEAR_CENTRO);
+    buf.extend_from_slice(escpos::NEGRITA_ON);
+    buf.extend_from_slice(format!("{}\n", p.nombre_comercio).as_bytes());
+    buf.extend_from_slice(b"PRESUPUESTO\n");
+    buf.extend_from_slice(escpos::NEGRITA_OFF);
+    buf.extend_from_slice(format!("{}\n", p.direccion).as_bytes());
+    buf.extend_from_slice(format!("{}\n", p.localidad_provincia).as_bytes());
+    if !p.telefono.is_empty() {
+        buf.extend_from_slice(format!("Tel: {}\n", p.telefono).as_bytes());
+    }
+    if !p.cuit.is_empty() {
+        buf.extend_from_slice(format!("CUIT: {}\n", p.cuit).as_bytes());
+    }
+    buf.extend_from_slice(escpos::SALTO_LINEA);
+
+    buf.extend_from_slice(escpos::ALINEAR_IZQUIERDA);
+    buf.extend_from_slice(format!("Fecha: {} {}\n", p.fecha, p.hora).as_bytes());
+    buf.extend_from_slice(format!("Valido hasta: {}\n", p.valido_hasta).as_bytes());
+    buf.extend_from_slice(escpos::SALTO_LINEA);
+
+    for (i, item) in p.items.iter().enumerate() {
+        buf.extend_from_slice(format!("{} {}\n", i + 1, item.nombre).as_bytes());
+        let izquierda = format!("   {} x ${:.0}", item.cantidad_display, item.precio_unitario);
+        let derecha = format!("${:.0}", item.total);
+        buf.extend_from_slice(linea_dos_columnas(&izquierda, &derecha).as_bytes());
+        buf.extend_from_slice(escpos::SALTO_LINEA);
+    }
+    buf.extend_from_slice(escpos::SALTO_LINEA);
+
+    buf.extend_from_slice(escpos::NEGRITA_ON);
+    buf.extend_from_slice(
+        linea_dos_columnas("TOTAL:", &format!("${:.0}", p.total)).as_bytes(),
+    );
+    buf.extend_from_slice(escpos::NEGRITA_OFF);
+    buf.extend_from_slice(escpos::SALTO_LINEA);
+    buf.extend_from_slice(escpos::SALTO_LINEA);
+
+    buf.extend_from_slice(escpos::ALINEAR_CENTRO);
+    buf.extend_from_slice(b"Este presupuesto NO es una venta.\n");
+    buf.extend_from_slice(b"Los precios pueden variar.\n");
+    buf.extend_from_slice(escpos::SALTO_LINEA);
+    buf.extend_from_slice(escpos::SALTO_LINEA);
+    buf.extend_from_slice(escpos::CORTAR_PAPEL);
+    buf
+}
+
+fn truncar(s: &str, max: usize) -> String {
+    let chars: Vec<char> = s.chars().collect();
+    if chars.len() <= max {
+        s.to_string()
+    } else {
+        chars.into_iter().take(max).collect()
+    }
 }
 
 fn capitalizar(s: &str) -> String {

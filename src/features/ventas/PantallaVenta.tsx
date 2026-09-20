@@ -1,4 +1,5 @@
-﻿import { useEffect, useState } from "react";
+﻿import { imprimirPresupuesto, leerConfigComercio, formatearFechaHora, type DatosPresupuesto } from "@/services/impresionService";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useCarritoStore } from "@/store/carritoStore";
 import type { LineaCarrito } from "@/store/carritoStore";
@@ -313,6 +314,44 @@ export default function PantallaVenta() {
     setVentaParaReintentar(null);
   }
 
+  async function manejarImprimirPresupuesto() {
+    if (!hayItems) return;
+    try {
+      const config = await leerConfigComercio();
+      const hoy = new Date();
+      const enUnaSemana = new Date();
+      enUnaSemana.setDate(enUnaSemana.getDate() + 7);
+      const { fecha, hora } = formatearFechaHora(hoy);
+      const { fecha: validoHasta } = formatearFechaHora(enUnaSemana);
+
+      const datos: DatosPresupuesto = {
+        nombre_comercio: config.nombre_comercio,
+        direccion: config.direccion,
+        localidad_provincia: config.localidad_provincia,
+        telefono: config.telefono,
+        cuit: config.cuit,
+        fecha,
+        hora,
+        valido_hasta: validoHasta,
+        items: lineas.map((l) => ({
+          nombre: l.producto.nombre,
+          cantidad_display: l.producto.es_pesable
+            ? `${l.cantidad.toFixed(3)}kg`
+            : String(l.cantidad),
+          precio_unitario: l.precioUnitario,
+          total: l.cantidad * l.precioUnitario - l.descuento,
+        })),
+        total: total(),
+      };
+
+      await imprimirPresupuesto(datos);
+      setMensajeExito("Presupuesto impreso");
+      setTimeout(() => setMensajeExito(null), 3000);
+    } catch (e) {
+      alert(String(e));
+    }
+  }
+
   function solicitarAutorizacionDescuento(accion: () => void) {
     // Sin autorización por PIN: aplica directo (para comercio con 1 dueño).
     accion();
@@ -377,6 +416,14 @@ export default function PantallaVenta() {
             <span className="text-[10px] bg-white/20 px-1.5 py-0.5 rounded font-bold">
               F1
             </span>
+          </button>
+          <button
+            type="button"
+            onClick={manejarImprimirPresupuesto}
+            disabled={!hayItems}
+            className="bg-blue-700 hover:bg-blue-600 text-white px-5 rounded-lg font-semibold flex items-center gap-2 shrink-0 disabled:opacity-40 disabled:cursor-not-allowed"
+          >
+            📄 PRESUPUESTO
           </button>
         </div>
 

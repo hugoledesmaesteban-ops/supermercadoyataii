@@ -1,6 +1,7 @@
 ﻿import { useState, type FormEvent } from "react";
 import { actualizarProducto } from "@/services/productosService";
 import type { Producto } from "@/types/producto";
+import CalculadoraPrecio from "./CalculadoraPrecio";
 
 interface Props {
   producto: Producto;
@@ -84,7 +85,7 @@ export default function ModalEditarProducto({ producto, usuarioId, onCerrar, onG
             </Campo>
             <Campo label="Precio de compra">
               <input
-                type="number"
+                type="number" onFocus={(e) => e.currentTarget.select()}
                 step="0.01"
                 value={form.precio_compra}
                 onChange={(e) => setForm({ ...form, precio_compra: parseFloat(e.target.value) || 0 })}
@@ -93,7 +94,7 @@ export default function ModalEditarProducto({ producto, usuarioId, onCerrar, onG
             </Campo>
             <Campo label="Precio de venta">
               <input
-                type="number"
+                type="number" onFocus={(e) => e.currentTarget.select()}
                 step="0.01"
                 value={form.precio_venta}
                 onChange={(e) => setForm({ ...form, precio_venta: parseFloat(e.target.value) || 0 })}
@@ -102,7 +103,7 @@ export default function ModalEditarProducto({ producto, usuarioId, onCerrar, onG
             </Campo>
             <Campo label="Stock mínimo">
               <input
-                type="number"
+                type="number" onFocus={(e) => e.currentTarget.select()}
                 step="0.01"
                 value={form.stock_minimo}
                 onChange={(e) => setForm({ ...form, stock_minimo: parseFloat(e.target.value) || 0 })}
@@ -132,7 +133,7 @@ export default function ModalEditarProducto({ producto, usuarioId, onCerrar, onG
             </Campo>
             <Campo label="IVA %">
               <input
-                type="number"
+                type="number" onFocus={(e) => e.currentTarget.select()}
                 step="0.01"
                 value={form.iva}
                 onChange={(e) => setForm({ ...form, iva: parseFloat(e.target.value) || 0 })}
@@ -140,6 +141,14 @@ export default function ModalEditarProducto({ producto, usuarioId, onCerrar, onG
               />
             </Campo>
           </div>
+
+          {form.precio_compra > 0 && (
+            <CalculadoraPrecio
+              costo={form.precio_compra}
+              precioActual={form.precio_venta}
+              onAplicar={(nuevoPrecio) => setForm({ ...form, precio_venta: nuevoPrecio })}
+            />
+          )}
 
           <label className="flex items-center gap-2 text-sm">
             <input
@@ -153,7 +162,7 @@ export default function ModalEditarProducto({ producto, usuarioId, onCerrar, onG
           {form.es_pesable && (
             <Campo label="Precio por kg">
               <input
-                type="number"
+                type="number" onFocus={(e) => e.currentTarget.select()}
                 step="0.01"
                 value={form.precio_por_kg ?? ""}
                 onChange={(e) => setForm({ ...form, precio_por_kg: parseFloat(e.target.value) || null })}
@@ -208,3 +217,4 @@ function Campo({ label, children, span2 }: { label: string; children: React.Reac
     </div>
   );
 }
+

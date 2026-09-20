@@ -1,4 +1,4 @@
-import { useState } from "react";
+﻿import { useState } from "react";
 import { useCarritoStore } from "@/store/carritoStore";
 
 const formatoMoneda = new Intl.NumberFormat("es-AR", {
@@ -36,13 +36,13 @@ export default function ModalCambiarPrecio({ onCerrar, onSolicitarAutorizacion }
       <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden">
         <div className="bg-slate-800 text-white p-4 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <span className="text-2xl">💲</span>
+            <span className="text-2xl">ðŸ’²</span>
             <div>
               <h2 className="text-base font-black leading-tight">CAMBIAR PRECIO</h2>
               <p className="text-xs opacity-90 truncate max-w-[240px]">{linea.producto.nombre}</p>
             </div>
           </div>
-          <button onClick={onCerrar} className="text-white/80 hover:text-white text-xl leading-none">✕</button>
+          <button onClick={onCerrar} className="text-white/80 hover:text-white text-xl leading-none">âœ•</button>
         </div>
 
         <div className="p-5 space-y-4">
@@ -62,7 +62,7 @@ export default function ModalCambiarPrecio({ onCerrar, onSolicitarAutorizacion }
               Nuevo precio unitario
             </label>
             <input
-              type="text"
+              type="text" onFocus={(e) => e.currentTarget.select()}
               inputMode="decimal"
               value={nuevoPrecio}
               onChange={(e) => setNuevoPrecio(e.target.value)}
@@ -72,7 +72,7 @@ export default function ModalCambiarPrecio({ onCerrar, onSolicitarAutorizacion }
             />
             {valido && diferencia !== 0 && (
               <p className={`text-sm mt-1 font-semibold ${diferencia > 0 ? "text-red-600" : "text-emerald-600"}`}>
-                {diferencia > 0 ? "▲" : "▼"} {formatoMoneda.format(Math.abs(diferencia))} por unidad
+                {diferencia > 0 ? "â–²" : "â–¼"} {formatoMoneda.format(Math.abs(diferencia))} por unidad
               </p>
             )}
           </div>
@@ -82,16 +82,16 @@ export default function ModalCambiarPrecio({ onCerrar, onSolicitarAutorizacion }
               Motivo <span className="text-red-500">*</span>
             </label>
             <input
-              type="text"
+              type="text" onFocus={(e) => e.currentTarget.select()}
               value={motivo}
               onChange={(e) => setMotivo(e.target.value)}
-              placeholder="ej: precio de oferta, producto dañado…"
+              placeholder="ej: precio de oferta, producto daÃ±adoâ€¦"
               className="w-full h-11 px-3 border-2 border-slate-300 rounded-lg focus:border-slate-800 outline-none"
             />
           </div>
 
           <div className="bg-amber-50 border border-amber-300 rounded-lg p-2 text-xs text-amber-800">
-            🔐 Esta acción requiere autorización de encargado y queda registrada en auditoría.
+            ðŸ” Esta acciÃ³n requiere autorizaciÃ³n de encargado y queda registrada en auditorÃ­a.
           </div>
 
           <div className="flex gap-2 pt-2">
