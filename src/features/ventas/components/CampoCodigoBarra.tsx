@@ -20,7 +20,7 @@ type Banner =
 // Formato 2-5-5-1 (EAN-13):
 //   [2 digitos prefijo "20"] [5 digitos PLU] [5 digitos PESO en gramos] [1 digito check]
 // Ejemplo: 2000085013502 -> PLU "00085", peso 01350 = 1.350 kg
-const PREFIJO_BALANZA = "20";
+const PREFIJO_BALANZA = "2";
 
 interface CodigoBalanza {
   plu: string;
@@ -29,10 +29,13 @@ interface CodigoBalanza {
 
 function decodificarCodigoBalanza(codigo: string): CodigoBalanza | null {
   if (codigo.length !== 13) return null;
-  if (!codigo.startsWith(PREFIJO_BALANZA)) return null;
+  if (!codigo.startsWith("2")) return null;
   if (!/^\d{13}$/.test(codigo)) return null;
 
-  const plu = codigo.substring(2, 7);
+  // Kretz Report LT usa formato 1-5-5-2: [2] [PLU 5] [PESO 5] [CHECK 2]
+  // Pero algunos modelos usan 2-5-5-1: [20] [PLU 5] [PESO 5] [CHECK 1]
+  // Probamos la posicion 1-5 (formato 1-5-5-2) que es la mas comun en Kretz
+  const plu = codigo.substring(1, 6);
   const pesoGramos = parseInt(codigo.substring(7, 12), 10);
   if (isNaN(pesoGramos)) return null;
 
